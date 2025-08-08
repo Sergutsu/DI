@@ -60,6 +60,29 @@
             color: #57a64a;
         }
         
+        /* GDScript specific styles */
+        .gdscript-keyword {
+            color: #569cd6;
+            font-weight: bold;
+        }
+        
+        .gdscript-class {
+            color: #4ec9b0;
+        }
+        
+        .gdscript-function {
+            color: #dcdcaa;
+        }
+        
+        .gdscript-variable {
+            color: #9cdcfe;
+        }
+        
+        .gdscript-comment {
+            color: #6a9955;
+            font-style: italic;
+        }
+        
         .diagram-container {
             perspective: 1000px;
         }
@@ -632,12 +655,23 @@
             return code;
         }
     
-        document.querySelectorAll('pre code').forEach(block => {
+        // Apply GDScript highlighting only to GDScript code blocks
+        document.querySelectorAll('pre code.language-gdscript').forEach(block => {
             // Get raw text content
             const rawCode = block.textContent;
             
-            // Apply highlighting
+            // Apply GDScript highlighting
             block.innerHTML = highlightGDScript(rawCode);
+            
+            // Add a small label to indicate this is GDScript
+            const pre = block.closest('pre');
+            if (pre && !pre.querySelector('.code-language-label')) {
+                const label = document.createElement('div');
+                label.className = 'code-language-label absolute top-2 right-2 bg-gray-700 text-xs text-gray-300 px-2 py-1 rounded';
+                label.textContent = 'GDScript';
+                pre.style.position = 'relative';
+                pre.appendChild(label);
+            }
         });
     </script>
     <script>
