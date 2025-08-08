@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dependency Injection in GDScript</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 100px 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            border-radius: 20px;
+            margin-bottom: 50px;
+            backdrop-filter: blur(10px);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: colorShift 3s ease-in-out infinite alternate;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            animation: slideIn 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #4ecdc4;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            animation: pulse 2s infinite;
+        }
+
+        .code-container {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 4px solid #4ecdc4;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .code-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4ecdc4, #45b7d1, #ff6b6b);
+            animation: progressBar 2s ease-in-out infinite;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-title {
+            font-weight: bold;
+            color: #4ecdc4;
+            font-size: 0.9rem;
+        }
+
+        .code-badges {
+            display: flex;
+            gap: 10px;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .badge.good {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        }
+
+        .badge.bad {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+        }
+
+        pre {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            color: #f8f8f2;
+        }
+
+        .keyword {
+            color: #ff79c6;
+        }
+
+        .string {
+            color: #f1fa8c;
+        }
+
+        .comment {
+            color: #6272a4;
+            font-style: italic;
+        }
+
+        .function {
+            color: #50fa7b;
+        }
+
+        .variable {
+            color: #8be9fd;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .comparison-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comparison-item.good {
+            border-color: #4ecdc4;
+        }
+
+        .comparison-item.bad {
+            border-color: #ff6b6b;
+        }
+
+        .comparison-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .comparison-item.good::before {
+            background: linear-gradient(90deg, #4ecdc4, #44a08d);
+        }
+
+        .comparison-item.bad::before {
+            background: linear-gradient(90deg, #ff6b6b, #ee5a6f);
+        }
+
+        .comparison-item h3 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .benefits {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .benefit-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .benefit-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .benefit-card:hover::before {
+            opacity: 1;
+            animation: shimmer 1s ease-in-out;
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .benefit-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #4ecdc4;
+        }
+
+        .interactive-demo {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 2px solid #4ecdc4;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .demo-button {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .demo-button:hover::before {
+            left: 100%;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .demo-output {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 150px;
+            border-left: 4px solid #ff6b6b;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes colorShift {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(45deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes progressBar {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(45deg) translate(-100%, -100%); }
+            100% { transform: rotate(45deg) translate(100%, 100%); }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .demo-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>Dependency Injection</h1>
+            <p>Master the art of clean, testable, and maintainable GDScript code</p>
+        </div>
+
+        <div class="section" style="animation-delay: 0.2s">
+            <h2><div class="icon">🎯</div>What is Dependency Injection?</h2>
+            <p>Dependency Injection (DI) is a design pattern where objects receive their dependencies from external sources rather than creating them internally. This promotes loose coupling, easier testing, and better code organization.</p>
+            
+            <div class="comparison">
+                <div class="comparison-item bad">
+                    <h3>❌ Without DI</h3>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <div class="code-title">Tightly Coupled Code</div>
+                            <div class="badge bad">Hard to Test</div>
+                        </div>
+                        <pre><code><span class="keyword">class_name</span> <span class="variable">Player</span>
+<span class="keyword">extends</span> <span class="variable">Node2D</span>
+
+<span class="keyword">var</span> <span class="variable">health_system</span>: <span class="variable">HealthSystem</span>
+<span class="keyword">var</span> <span class="variable">inventory</span>: <span class="variable">Inventory</span>
+
+<span class="keyword">func</span> <span class="function">_ready</span>():
+    <span class="comment"># Creating dependencies internally</span>
+    <span class="variable">health_system</span> = <span class="variable">HealthSystem</span>.<span class="function">new</span>()
+    <span class="variable">inventory</span> = <span class="variable">Inventory</span>.<span class="function">new</span>()
+    
+<span class="keyword">func</span> <span class="function">take_damage</span>(<span class="variable">amount</span>: <span class="keyword">int</span>):
+    <span class="variable">health_system</span>.<span class="function">reduce_health</span>(<span class="variable">amount</span>)</code></pre>
+                    </div>
+                </div>
+                
+                <div class="comparison-item good">
+                    <h3>✅ With DI</h3>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <div class="code-title">Loosely Coupled Code</div>
+                            <div class="badge good">Easy to Test</div>
+                        </div>
+                        <pre><code><span class="keyword">class_name</span> <span class="variable">Player</span>
+<span class="keyword">extends</span> <span class="variable">Node2D</span>
+
+<span class="keyword">var</span> <span class="variable">health_system</span>: <span class="variable">HealthSystem</span>
+<span class="keyword">var</span> <span class="variable">inventory</span>: <span class="variable">Inventory</span>
+
+<span class="comment"># Dependencies injected via constructor</span>
+<span class="keyword">func</span> <span class="function">_init</span>(<span class="variable">health</span>: <span class="variable">HealthSystem</span>, <span class="variable">inv</span>: <span class="variable">Inventory</span>):
+    <span class="variable">health_system</span> = <span class="variable">health</span>
+    <span class="variable">inventory</span> = <span class="variable">inv</span>
+    
+<span class="keyword">func</span> <span class="function">take_damage</span>(<span class="variable">amount</span>: <span class="keyword">int</span>):
+    <span class="variable">health_system</span>.<span class="function">reduce_health</span>(<span class="variable">amount</span>)</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" style="animation-delay: 0.4s">
+            <h2><div class="icon">🛠️</div>Implementation Methods</h2>
+            
+            <h3>1. Constructor Injection</h3>
+            <div class="code-container">
+                <div class="code-header">
+                    <div class="code-title">Constructor Injection Example</div>
+                    <div class="badge good">Preferred Method</div>
+                </div>
+                <pre><code><span class="keyword">class_name</span> <span class="variable">WeaponSystem</span>
+<span class="keyword">extends</span> <span class="variable">Node</span>
+
+<span class="keyword">var</span> <span class="variable">damage_calculator</span>: <span class="variable">DamageCalculator</span>
+<span class="keyword">var</span> <span class="variable">sound_manager</span>: <span class="variable">SoundManager</span>
+
+<span class="keyword">func</span> <span class="function">_init</span>(<span class="variable">calc</span>: <span class="variable">DamageCalculator</span>, <span class="variable">sound</span>: <span class="variable">SoundManager</span>):
+    <span class="variable">damage_calculator</span> = <span class="variable">calc</span>
+    <span class="variable">sound_manager</span> = <span class="variable">sound</span>
+
+<span class="keyword">func</span> <span class="function">fire_weapon</span>(<span class="variable">target</span>: <span class="variable">Node</span>):
+    <span class="keyword">var</span> <span class="variable">damage</span> = <span class="variable">damage_calculator</span>.<span class="function">calculate</span>(<span class="variable">base_damage</span>)
+    <span class="variable">sound_manager</span>.<span class="function">play_sound</span>(<span class="string">"weapon_fire"</span>)
+    <span class="variable">target</span>.<span class="function">take_damage</span>(<span class="variable">damage</span>)</code></pre>
+            </div>
+
+            <h3>2. Setter Injection</h3>
+            <div class="code-container">
+                <div class="code-header">
+                    <div class="code-title">Setter Injection Example</div>
+                    <div class="badge">Optional Dependencies</div>
+                </div>
+                <pre><code><span class="keyword">class_name</span> <span class="variable">GameUI</span>
+<span class="keyword">extends</span> <span class="variable">Control</span>
+
+<span class="keyword">var</span> <span class="variable">analytics</span>: <span class="variable">Analytics</span>
+
+<span class="keyword">func</span> <span class="function">set_analytics</span>(<span class="variable">analytics_service</span>: <span class="variable">Analytics</span>):
+    <span class="variable">analytics</span> = <span class="variable">analytics_service</span>
+
+<span class="keyword">func</span> <span class="function">on_button_clicked</span>():
+    <span class="keyword">if</span> <span class="variable">analytics</span>:
+        <span class="variable">analytics</span>.<span class="function">track_event</span>(<span class="string">"button_click"</span>)</code></pre>
+            </div>
+        </div>
+
+        <div class="section" style="animation-delay: 0.6s">
+            <h2><div class="icon">⚡</div>Benefits of DI</h2>
+            <div class="benefits">
+                <div class="benefit-card">
+                    <div class="benefit-icon">🧪</div>
+                    <h3>Testability</h3>
+                    <p>Easily mock dependencies for unit testing</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">🔧</div>
+                    <h3>Maintainability</h3>
+                    <p>Changes in one component don't break others</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">🔄</div>
+                    <h3>Flexibility</h3>
+                    <p>Swap implementations without code changes</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">📦</div>
+                    <h3>Reusability</h3>
+                    <p>Components can be reused across projects</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" style="animation-delay: 0.8s">
+            <h2><div class="icon">🏗️</div>Simple DI Container</h2>
+            <div class="code-container">
+                <div class="code-header">
+                    <div class="code-title">DIContainer.gd</div>
+                    <div class="badge good">Service Locator</div>
+                </div>
+                <pre><code><span class="keyword">class_name</span> <span class="variable">DIContainer</span>
+<span class="keyword">extends</span> <span class="variable">RefCounted</span>
+
+<span class="keyword">static</span> <span class="keyword">var</span> <span class="variable">_instance</span>: <span class="variable">DIContainer</span>
+<span class="keyword">var</span> <span class="variable">_services</span>: <span class="variable">Dictionary</span> = {}
+
+<span class="keyword">static</span> <span class="keyword">func</span> <span class="function">instance</span>() -> <span class="variable">DIContainer</span>:
+    <span class="keyword">if</span> <span class="keyword">not</span> <span class="variable">_instance</span>:
+        <span class="variable">_instance</span> = <span class="variable">DIContainer</span>.<span class="function">new</span>()
+    <span class="keyword">return</span> <span class="variable">_instance</span>
+
+<span class="keyword">func</span> <span class="function">register</span>(<span class="variable">service_name</span>: <span class="variable">String</span>, <span class="variable">service</span>):
+    <span class="variable">_services</span>[<span class="variable">service_name</span>] = <span class="variable">service</span>
+
+<span class="keyword">func</span> <span class="function">get_service</span>(<span class="variable">service_name</span>: <span class="variable">String</span>):
+    <span class="keyword">if</span> <span class="variable">service_name</span> <span class="keyword">in</span> <span class="variable">_services</span>:
+        <span class="keyword">return</span> <span class="variable">_services</span>[<span class="variable">service_name</span>]
+    <span class="keyword">else</span>:
+        <span class="function">push_error</span>(<span class="string">"Service not found: "</span> + <span class="variable">service_name</span>)
+        <span class="keyword">return</span> <span class="keyword">null</span></code></pre>
+            </div>
+        </div>
+
+        <div class="section" style="animation-delay: 1.0s">
+            <h2><div class="icon">🎮</div>Interactive Demo</h2>
+            <div class="interactive-demo">
+                <p>Click the buttons below to see dependency injection in action:</p>
+                <div class="demo-buttons">
+                    <button class="demo-button" onclick="demonstrateBasicDI()">Basic DI Example</button>
+                    <button class="demo-button" onclick="demonstrateContainer()">DI Container</button>
+                    <button class="demo-button" onclick="demonstrateTesting()">Testing Benefits</button>
+                </div>
+                <div class="demo-output" id="demoOutput">
+                    Click a button above to see dependency injection examples in action!
+                </div>
+            </div>
+        </div>
+
+        <div class="section" style="animation-delay: 1.2s">
+            <h2><div class="icon">📚</div>Best Practices</h2>
+            <ul style="font-size: 1.1rem; line-height: 1.8; list-style-type: none; padding-left: 0;">
+                <li style="margin-bottom: 10px;">✅ Prefer constructor injection for required dependencies</li>
+                <li style="margin-bottom: 10px;">✅ Use interfaces/abstracts for better decoupling</li>
+                <li style="margin-bottom: 10px;">✅ Keep your constructors simple and focused</li>
+                <li style="margin-bottom: 10px;">✅ Don't inject too many dependencies (consider facade pattern)</li>
+                <li style="margin-bottom: 10px;">✅ Use DI containers for complex dependency graphs</li>
+                <li style="margin-bottom: 10px;">✅ Document your dependencies clearly</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Animate sections as they come into view
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.section').forEach(section => {
+            section.style.animationPlayState = 'paused';
+            observer.observe(section);
+        });
+
+        // Demo functions
+        function demonstrateBasicDI() {
+            const output = document.getElementById('demoOutput');
+            output.innerHTML = `
+<span style="color: #4ecdc4; font-weight: bold;">Basic Dependency Injection Example:</span>
+
+<span style="color: #50fa7b;">// Without DI - Tight coupling</span>
+class Player:
+    func _ready():
+        health = HealthSystem.new()  <span style="color: #ff6b6b;"># Hard-coded dependency!</span>
+
+<span style="color: #50fa7b;">// With DI - Loose coupling</span>
+class Player:
+    func _init(health_system: HealthSystem):
+        health = health_system  <span style="color: #4ecdc4;"># Injected dependency!</span>
+
+<span style="color: #f1fa8c;">// Usage:</span>
+var health_system = HealthSystem.new()
+var player = Player.new(health_system)
+
+<span style="color: #4ecdc4;">✅ Now Player can work with any HealthSystem implementation!</span>
+            `;
+        }
+
+        function demonstrateContainer() {
+            const output = document.getElementById('demoOutput');
+            output.innerHTML = `
+<span style="color: #4ecdc4; font-weight: bold;">DI Container in Action:</span>
+
+<span style="color: #50fa7b;">// Register services</span>
+var container = DIContainer.instance()
+container.register("HealthSystem", HealthSystem.new())
+container.register("SoundManager", SoundManager.new())
+container.register("Analytics", Analytics.new())
+
+<span style="color: #50fa7b;">// Retrieve and inject dependencies</span>
+var health = container.get_service("HealthSystem")
+var sound = container.get_service("SoundManager")
+var player = Player.new(health, sound)
+
+<span style="color: #4ecdc4;">✅ Centralized dependency management!</span>
+<span style="color: #4ecdc4;">✅ Easy to swap implementations!</span>
+<span style="color: #4ecdc4;">✅ Configuration in one place!</span>
+            `;
+        }
+
+        function demonstrateTesting() {
+            const output = document.getElementById('demoOutput');
+            output.innerHTML = `
+<span style="color: #4ecdc4; font-weight: bold;">Testing with Dependency Injection:</span>
+
+<span style="color: #50fa7b;">// Mock implementation for testing</span>
+class MockHealthSystem extends HealthSystem:
+    var damage_received = 0
+    
+    func reduce_health(amount: int):
+        damage_received += amount
+
+<span style="color: #50fa7b;">// Test setup</span>
+func test_player_takes_damage():
+    var mock_health = MockHealthSystem.new()
+    var player = Player.new(mock_health)
+    
+    player.take_damage(10)
+    
+    assert(mock_health.damage_received == 10)
+
+<span style="color: #4ecdc4;">✅ Easy to test with mocks!</span>
+<span style="color: #4ecdc4;">✅ No need for complex test setup!</span>
+<span style="color: #4ecdc4;">✅ Isolated unit testing!</span>
+            `;
+        }
+
+        // Add some interactive particles
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.style.position = 'fixed';
+            particle.style.width = '4px';
+            particle.style.height = '4px';
+            particle.style.background = '#4ecdc4';
+            particle.style.borderRadius = '50%';
+            particle.style.pointerEvents = 'none';
+            particle.style.opacity = '0.6';
+            particle.style.left = Math.random() * window.innerWidth + 'px';
+            particle.style.top = window.innerHeight + 'px';
+            particle.style.zIndex = '-1';
+            
+            document.body.appendChild(particle);
+            
+            const animation = particle.animate([
+                { transform: 'translateY(0px)', opacity: 0.6 },
+                { transform: 'translateY(-' + (window.innerHeight + 100) + 'px)', opacity: 0 }
+            ], {
+                duration: Math.random() * 3000 + 2000,
+                easing: 'linear'
+            });
+            
+            animation.onfinish = () => particle.remove();
+        }
+
+        // Create particles periodically
+        setInterval(createParticle, 300);
+    </script>
+</body>
+</html>

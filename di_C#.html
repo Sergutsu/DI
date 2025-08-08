@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C# Dependency Injection Tutorial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3498db',
+                        secondary: '#2c3e50',
+                        accent: '#e74c3c',
+                        light: '#f8f9fa',
+                        dark: '#2c3e50'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            scroll-behavior: smooth;
+        }
+        
+        .code-block {
+            background-color: #2d3748;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .code-keyword {
+            color: #569cd6;
+        }
+        
+        .code-class {
+            color: #4ec9b0;
+        }
+        
+        .code-interface {
+            color: #b8d7a3;
+        }
+        
+        .code-string {
+            color: #d69d85;
+        }
+        
+        .code-comment {
+            color: #57a64a;
+        }
+        
+        .diagram-container {
+            perspective: 1000px;
+        }
+        
+        .diagram-box {
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+        
+        .diagram-box:hover {
+            transform: rotateY(5deg) rotateX(5deg);
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+            }
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .step-progress {
+            height: 4px;
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .highlight {
+            background-color: rgba(52, 152, 219, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .graph-bar {
+            transition: height 1s ease;
+        }
+        
+        .graph-point {
+            transition: all 1s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <!-- Header -->
+    <header class="bg-secondary text-white sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-code text-primary text-2xl"></i>
+                <h1 class="text-2xl font-bold">C# Dependency Injection</h1>
+            </div>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#intro" class="hover:text-primary transition">Introduction</a>
+                <a href="#concepts" class="hover:text-primary transition">Core Concepts</a>
+                <a href="#implementation" class="hover:text-primary transition">Implementation</a>
+                <a href="#examples" class="hover:text-primary transition">Examples</a>
+                <a href="#best-practices" class="hover:text-primary transition">Best Practices</a>
+            </nav>
+            <button class="md:hidden text-xl">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-primary to-secondary text-white py-20">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6">Master C# Dependency Injection</h1>
+            <p class="text-xl mb-8 max-w-3xl mx-auto">Learn how to implement clean, testable, and maintainable code with Dependency Injection in C#</p>
+            <div class="flex flex-col md:flex-row justify-center gap-4">
+                <button class="bg-accent hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full text-lg transition transform hover:scale-105">
+                    Start Learning Now
+                </button>
+                <button class="bg-transparent border-2 border-white hover:bg-white hover:text-secondary font-bold py-3 px-8 rounded-full text-lg transition">
+                    View Examples
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Introduction Section -->
+    <section id="intro" class="py-16 bg-light">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">What is Dependency Injection?</h2>
+                <p class="text-lg max-w-3xl mx-auto">Dependency Injection is a design pattern that allows the creation of dependent objects outside of a class and provides those objects to a class in different ways.</p>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-8 items-center">
+                <div class="md:w-1/2">
+                    <div class="diagram-container">
+                        <div class="diagram-box bg-white p-6 rounded-xl shadow-lg">
+                            <h3 class="text-xl font-bold mb-4">Dependency Injection Flow</h3>
+                            <div class="flex flex-col items-center">
+                                <div class="flex items-center mb-4">
+                                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">1</div>
+                                    <div class="ml-4">
+                                        <h4 class="font-bold">Service Registration</h4>
+                                        <p class="text-sm">Register services in the container</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center mb-4">
+                                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">2</div>
+                                    <div class="ml-4">
+                                        <h4 class="font-bold">Service Resolution</h4>
+                                        <p class="text-sm">Container resolves dependencies</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">3</div>
+                                    <div class="ml-4">
+                                        <h4 class="font-bold">Injection</h4>
+                                        <p class="text-sm">Dependencies injected into classes</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="md:w-1/2">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-xl font-bold mb-4">Why Dependency Injection?</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary mt-1 mr-2"></i>
+                                <span>Improves code maintainability and testability</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary mt-1 mr-2"></i>
+                                <span>Reduces tight coupling between components</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary mt-1 mr-2"></i>
+                                <span>Enables easier unit testing</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary mt-1 mr-2"></i>
+                                <span>Facilitates better code organization</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-primary mt-1 mr-2"></i>
+                                <span>Supports the Single Responsibility Principle</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Concepts Section -->
+    <section id="concepts" class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Core Concepts of DI</h2>
+                <p class="text-lg max-w-3xl mx-auto">Understanding the fundamental principles of Dependency Injection</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white mb-4">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Inversion of Control</h3>
+                    <p>DI is a form of Inversion of Control where control of object creation is transferred to a container or framework.</p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white mb-4">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Service Container</h3>
+                    <p>The container manages the creation and lifetime of service objects and their dependencies.</p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white mb-4">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Service Lifetime</h3>
+                    <p>Services can be registered with different lifetimes: Singleton, Transient, or Scoped.</p>
+                </div>
+            </div>
+            
+            <div class="mt-12 bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-2xl font-bold mb-6 text-center">Service Lifetimes Comparison</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th class="py-3 px-4 text-left">Lifetime</th>
+                                <th class="py-3 px-4 text-left">Description</th>
+                                <th class="py-3 px-4 text-left">Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">Singleton</td>
+                                <td class="py-3 px-4">Single instance shared across the entire application</td>
+                                <td class="py-3 px-4">Configuration services, logging services</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-3 px-4 font-medium">Scoped</td>
+                                <td class="py-3 px-4">One instance per request (in web apps)</td>
+                                <td class="py-3 px-4">Database contexts, per-user services</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 font-medium">Transient</td>
+                                <td class="py-3 px-4">New instance every time it's requested</td>
+                                <td class="py-3 px-4">Stateless services, utility services</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Implementation Section -->
+    <section id="implementation" class="py-16 bg-light">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Implementation in C#</h2>
+                <p class="text-lg max-w-3xl mx-auto">Learn how to implement Dependency Injection in your C# applications</p>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="md:w-1/2">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-xl font-bold mb-4">Basic DI Setup</h3>
+                        <div class="code-block">
+                            <pre><code><span class="text-purple-400">public</span> <span class="text-blue-400">void</span> <span class="text-yellow-300">ConfigureServices</span>(IServiceCollection services)
+{
+    <span class="text-gray-400">// Register services with different lifetimes</span>
+    services.AddSingleton&lt;ILogger, FileLogger&gt;();
+    services.AddScoped&lt;IRepository, SqlRepository&gt;();
+    services.AddTransient&lt;IEmailService, EmailService&gt;();
+    
+    <span class="text-gray-400">// Register with implementation</span>
+    services.AddScoped&lt;IUserService, UserService&gt;();
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="md:w-1/2">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-xl font-bold mb-4">Service Registration</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold">Singleton</h4>
+                                <p class="text-sm">One instance throughout the application lifetime</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold">Scoped</h4>
+                                <p class="text-sm">One instance per request (web applications)</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold">Transient</h4>
+                                <p class="text-sm">New instance every time it's requested</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <h4 class="font-bold mb-2">Container Configuration</h4>
+                            <div class="code-block">
+                                <pre><code><span class="text-purple-400">public</span> <span class="text-blue-400">void</span> <span class="text-yellow-300">ConfigureContainer</span>(ContainerBuilder builder)
+{
+    <span class="text-gray-400">// Register services with Autofac</span>
+    builder.RegisterType&lt;EmailService&gt;().As&lt;IEmailService&gt;();
+    builder.RegisterType&lt;UserService&gt;().As&lt;IUserService&gt;();
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Examples Section -->
+    <section id="examples" class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Practical Examples</h2>
+                <p class="text-lg max-w-3xl mx-auto">See Dependency Injection in action with real-world examples</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-4">Controller with DI</h3>
+                    <div class="code-block">
+                        <pre><code>[ApiController]
+[Route(<span class="text-green-400">"api/[controller]"</span>)]
+<span class="text-purple-400">public</span> <span class="text-blue-400">class</span> <span class="text-yellow-300">UsersController</span> : ControllerBase
+{
+    <span class="text-purple-400">private</span> <span class="text-blue-400">readonly</span> IUserService _userService;
+    <span class="text-purple-400">private</span> <span class="text-blue-400">readonly</span> IEmailService _emailService;
+    
+    <span class="text-purple-400">public</span> UsersController(
+        IUserService userService, 
+        IEmailService emailService)
+    {
+        _userService = userService;
+        _emailService = emailService;
+    }
+    
+    [HttpPost]
+    <span class="text-purple-400">public</span> <span class="text-blue-400">async</span> Task&lt;IActionResult&gt; CreateUser(UserDto userDto)
+    {
+        <span class="text-purple-400">var</span> user = <span class="text-purple-400">new</span> User(userDto.Name, userDto.Email);
+        <span class="text-purple-400">await</span> _userService.CreateUser(user);
+        <span class="text-purple-400">await</span> _emailService.SendWelcomeEmail(user.Email);
+        <span class="text-purple-400">return</span> Ok();
+    }
+}</code></pre>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-4">Service Implementation</h3>
+                    <div class="code-block">
+                        <pre><code><span class="text-purple-400">public</span> <span class="text-blue-400">class</span> <span class="text-yellow-300">UserService</span> : IUserService
+{
+    <span class="text-purple-400">private</span> <span class="text-blue-400">readonly</span> IUserRepository _userRepository;
+    <span class="text-purple-400">private</span> <span class="text-blue-400">readonly</span> IEmailService _emailService;
+    
+    <span class="text-purple-400">public</span> UserService(
+        IUserRepository userRepository,
+        IEmailService emailService)
+    {
+        _userRepository = userRepository;
+        _emailService = emailService;
+    }
+    
+    <span class="text-purple-400">public</span> <span class="text-blue-400">async</span> Task CreateUser(User user)
+    {
+        <span class="text-purple-400">await</span> _userRepository.Add(user);
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-12 bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-2xl font-bold mb-6 text-center">Dependency Injection Flow Visualization</h3>
+                <div class="flex justify-center">
+                    <div class="flex flex-col items-center">
+                        <div class="w-48 h-48 rounded-full bg-primary flex items-center justify-center text-white mb-4 pulse">
+                            <i class="fas fa-database text-4xl"></i>
+                        </div>
+                        <p class="font-bold">Database</p>
+                    </div>
+                    
+                    <div class="flex items-center mx-8">
+                        <i class="fas fa-arrow-right text-3xl text-gray-400"></i>
+                    </div>
+                    
+                    <div class="flex flex-col items-center">
+                        <div class="w-48 h-48 rounded-full bg-secondary flex items-center justify-center text-white mb-4">
+                            <i class="fas fa-cogs text-4xl"></i>
+                        </div>
+                        <p class="font-bold">Repository</p>
+                    </div>
+                    
+                    <div class="flex items-center mx-8">
+                        <i class="fas fa-arrow-right text-3xl text-gray-400"></i>
+                        </div>
+                    
+                    <div class="flex flex-col items-center">
+                        <div class="w-48 h-48 rounded-full bg-accent flex items-center justify-center text-white mb-4">
+                            <i class="fas fa-user text-4xl"></i>
+                        </div>
+                        <p class="font-bold">Service</p>
+                    </div>
+                    
+                    <div class="flex items-center mx-8">
+                        <i class="fas fa-arrow-right text-3xl text-gray-400"></i>
+                    </div>
+                    
+                    <div class="flex flex-col items-center">
+                        <div class="w-48 h-48 rounded-full bg-primary flex items-center justify-center text-white mb-4">
+                            <i class="fas fa-code text-4xl"></i>
+                        </div>
+                        <p class="font-bold">Controller</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Best Practices Section -->
+    <section id="best-practices" class="py-16 bg-light">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Best Practices</h2>
+                <p class="text-lg max-w-3xl mx-auto">Follow these guidelines to implement effective Dependency Injection</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-4">Design Principles</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-primary mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="font-bold">Interface Segregation</h4>
+                                <p class="text-sm">Define specific interfaces for specific clients</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-primary mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="font-bold">Single Responsibility</h4>
+                                <p class="text-sm">Each class should have one reason to change</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-primary mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="font-bold">Liskov Substitution</h4>
+                                <p class="text-sm">Objects should be replaceable with instances of their subtypes</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-4">Implementation Tips</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <i class="fas fa-lightbulb text-primary mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="font-bold">Avoid Service Locator</h4>
+                                <p class="text-sm">Don't use service locator pattern - it hides dependencies</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-lightbulb text-primary mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="font-bold">Register at Composition Root</h4>
+                                <p class="text-sm">Register all dependencies in one place (usually Program.cs)</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-lightbulb text-primary mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="font-bold">Avoid Circular Dependencies</h4>
+                                <p class="text-sm">Design your architecture to prevent circular references</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-12 bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-2xl font-bold mb-6 text-center">Performance Impact</h3>
+                <div class="h-64 flex items-end justify-center space-x-4">
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 bg-primary rounded-t graph-bar" style="height: 70%;"></div>
+                        <p class="mt-2">Startup</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 bg-secondary rounded-t graph-bar" style="height: 30%;"></div>
+                        <p class="mt-2">Runtime</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 bg-accent rounded-t graph-bar" style="height: 90%;"></div>
+                        <p class="mt-2">Memory</p>
+                    </div>
+                </div>
+                <div class="mt-8 text-center">
+                    <p>DI containers add minimal overhead at runtime after initial setup</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 bg-gradient-to-r from-secondary to-primary text-white">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl font-bold mb-4">Ready to Master Dependency Injection?</h2>
+            <p class="text-xl mb-8 max-w-3xl mx-auto">Join thousands of developers who have improved their C# skills with our comprehensive tutorial</p>
+            <div class="flex flex-col md:flex-row justify-center gap-4">
+                <button class="bg-accent hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full text-lg transition transform hover:scale-105">
+                    Download Free Guide
+                </button>
+                <button class="bg-transparent border-2 border-white hover:bg-white hover:text-secondary font-bold py-3 px-8 rounded-full text-lg transition">
+                    View Full Course
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <div class="flex justify-center space-x-6 mb-6">
+                <a href="#" class="hover:text-primary transition"><i class="fab fa-github fa-2x"></i></a>
+                <a href="#" class="hover:text-primary transition"><i class="fab fa-twitter fa-2x"></i></a>
+                <a href="#" class="hover:text-primary transition"><i class="fab fa-youtube fa-2x"></i></a>
+                <a href="#" class="hover:text-primary transition"><i class="fab fa-linkedin fa-2x"></i></a>
+            </div>
+            <p>© 2023 C# Dependency Injection Tutorial. All rights reserved.</p>
+        </div>
+    </footer>
+    <script>
+        // ... existing navigation code ...
+    
+        // Highlight code blocks
+        function highlightGDScript(code) {
+            // Replace keywords
+            code = code.replace(/\b(extends|var|func|class|if|else|for|while|return|break|continue|pass|assert|export|setget|null|true|false|new)\b/g, 
+                '<span class="gdscript-keyword">$1</span>');
+            
+            // Classes
+            code = code.replace(/\b(Node|KinematicBody2D|Vector2|AudioManager|InputHandler|SaveManager|UIManager|AudioService)\b/g, 
+                '<span class="gdscript-class">$1</span>');
+            
+            // Functions
+            code = code.replace(/\b(_ready|_physics_process|initialize|play_sound|get_movement_vector|update_display|log|apply_settings|set_logger|set_config|connect|set_context|register_service|get_service|inject|inject_dependencies)\b/g, 
+                '<span class="gdscript-function">$1</span>');
+            
+            // Variables
+            code = code.replace(/\b(self|speed|direction|velocity|audio_manager|input_handler|logger|config|services|name|instance|target|dependencies|player_data|ui_manager|data_service|ui_service|value)\b/g, 
+                '<span class="gdscript-variable">$1</span>');
+            
+            // Comments
+            code = code.replace(/(#.*)/g, '<span class="gdscript-comment">$1</span>');
+            
+            // Strings
+            code = code.replace(/(".*?")/g, '<span class="text-green-400">$1</span>');
+            
+            // Numbers
+            code = code.replace(/(\d+)/g, '<span class="text-purple-400">$1</span>');
+            
+            return code;
+        }
+    
+        document.querySelectorAll('pre code').forEach(block => {
+            // Get raw text content
+            const rawCode = block.textContent;
+            
+            // Apply highlighting
+            block.innerHTML = highlightGDScript(rawCode);
+        });
+    </script>
+    <script>
+        // Simple animation for code blocks
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add floating animation to hero section elements
+            const floatingElements = document.querySelectorAll('.floating');
+            floatingElements.forEach(el => {
+                el.classList.add('floating');
+            });
+            
+            // Animate graph bars
+            const graphBars = document.querySelectorAll('.graph-bar');
+            graphBars.forEach(bar => {
+                const targetHeight = bar.style.height;
+                bar.style.height = '0';
+                setTimeout(() => {
+                    bar.style.height = targetHeight;
+                }, 500);
+            });
+            
+            // Tab functionality for examples
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.getAttribute('data-tab');
+                    
+                    // Remove active class from all buttons and contents
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked button and corresponding content
+                    button.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Progress bar for reading progress
+            const progressBar = document.createElement('div');
+            progressBar.className = 'fixed top-0 left-0 h-1 bg-primary z-50 step-progress';
+            document.body.appendChild(progressBar);
+            
+            window.addEventListener('scroll', () => {
+                const scrollPercent = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+                progressBar.style.width = scrollPercent + '%';
+            });
+        });
+    </script>
+</body>
+</html>
